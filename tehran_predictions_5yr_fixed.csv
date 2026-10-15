@@ -1,0 +1,23 @@
+District,Current_Rate_mm_yr,Observed_2024_mm,Predicted_2029_mm,Uncertainty_95,Future_Risk,Model,R2,Low_Confidence
+District 19,-48.9,-39.8,-286.7,23.7,🔴 Very High,Linear,0.946,False
+District 16,-45.6,-39.2,-265.7,15.5,🔴 Very High,Linear,0.973,False
+District 20,-33.5,-32.1,-196.0,16.8,🟠 High,Linear,0.943,False
+District 18,-22.3,-20.8,-130.6,18.6,🟠 High,Linear,0.857,False
+District 10,-18.3,-18.3,-107.3,14.7,🟠 High,Linear,0.865,False
+District 4,-13.1,-11.5,-76.6,18.9,🟡 Medium,Linear,0.666,False
+District 17,-10.5,-11.0,-60.1,19.0,🟡 Medium,Linear,0.558,False
+District 1,-7.3,-7.3,-42.5,11.4,🟢 Low,Linear,0.627,False
+District 3,1.4,1.6,9.1,8.8,🟢 Low,Linear,0.1,True
+District 2,6.5,5.7,36.8,18.9,🟢 Low,Linear,0.327,True
+District 5,10.0,10.6,58.2,21.8,🟢 Low,Linear,0.467,True
+District 6,13.9,12.2,81.3,14.7,🟢 Low,Linear,0.788,False
+District 8,14.8,12.0,87.0,17.6,🟢 Low,Linear,0.746,False
+District 22,15.1,14.5,88.1,23.8,🟢 Low,Linear,0.625,False
+District 15,18.2,16.8,105.9,23.9,🟢 Low,Linear,0.706,False
+District 7,19.2,17.4,113.9,17.8,🟢 Low,Linear,0.829,False
+District 14,21.4,21.3,126.6,21.2,🟢 Low,Linear,0.809,False
+District 13,28.2,24.2,164.6,19.0,🟢 Low,Linear,0.901,False
+District 21,28.3,25.8,166.6,19.1,🟢 Low,Linear,0.901,False
+District 11,31.3,26.0,181.5,19.1,🟢 Low,Linear,0.918,False
+District 12,34.6,32.0,201.3,18.4,🟢 Low,Linear,0.936,False
+District 9,35.1,31.0,205.4,16.7,🟢 Low,Linear,0.948,False

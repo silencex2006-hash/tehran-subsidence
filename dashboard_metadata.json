@@ -1,0 +1,24 @@
+{
+  "ascending": {
+    "orbit": "ASCENDING",
+    "path": "inputs/ifgramStack.h5",
+    "reference_lat": 35.68156,
+    "reference_lon": 51.53089,
+    "coverage_pct": 20.33064087393459,
+    "quality": "high",
+    "reliable": true,
+    "note": "داده اصلی تحلیل — MintPy کامل با coh=0.3"
+  },
+  "descending": {
+    "orbit": "DESCENDING",
+    "coverage_pct": 99.71436935760798,
+    "quality": "medium",
+    "reliable": false,
+    "note": "پوشش کامل ولی همبستگی پایین با Ascending (0.018) — فقط context"
+  },
+  "combined": {
+    "coverage_pct": 100.0,
+    "method": "priority + interpolation",
+    "note": "velocity نسبی (re-referenced به median هر منطقه)"
+  }
+}

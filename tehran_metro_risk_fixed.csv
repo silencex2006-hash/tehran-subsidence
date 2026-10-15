@@ -1,0 +1,78 @@
+name,lat,lon,district,velocity_mm_yr,risk
+Nematabad,35.65,51.35,District 10,-101.8,🔴 Critical
+Zamzam,35.655,51.34,District 10,-97.3,🔴 Critical
+Khalij Fars,35.655,51.365,District 10,-85.9,🔴 Critical
+Javadiyeh,35.66,51.37,District 10,-79.2,🔴 Critical
+Shahrak Valiasr 19,35.63,51.245,District 18,-66.0,🔴 Critical
+Baharestan 19,35.635,51.25,District 18,-65.8,🔴 Critical
+Shahrak Valiasr 18,35.63,51.285,District 17,-65.6,🔴 Critical
+Abdolabad 19,35.625,51.24,District 18,-64.1,🔴 Critical
+Azadegan,35.655,51.33,District 10,-63.9,🔴 Critical
+Beryanak,35.66,51.375,District 10,-62.9,🔴 Critical
+Ibn Babawayh,35.62,51.325,District 16,-59.3,🔴 Critical
+Yaftabad 18,35.635,51.28,District 17,-51.2,🔴 Critical
+Dolatabad,35.615,51.32,District 16,-49.3,🟠 Warning
+Shadabad,35.64,51.27,District 18,-44.8,🟠 Warning
+Haft Chenar,35.67,51.375,District 10,-33.2,🟠 Warning
+Shahr-e Rey 20,35.61,51.31,District 20,-31.3,🟠 Warning
+Yaftabad,35.66,51.345,District 10,-30.4,🟠 Warning
+Jeyhun,35.665,51.38,District 10,-26.8,🟡 Moderate
+Naziabad,35.665,51.355,District 10,-23.9,🟡 Moderate
+Shahid Sattari,35.79,51.5,District 1,-11.5,🟢 Stable
+Tajrish,35.7975,51.4272,District 1,-6.8,🟢 Stable
+Ghaem,35.7864,51.4736,District 1,-5.4,🟢 Stable
+Kosar,35.78,51.49,District 1,-3.7,🟢 Stable
+Shahid Kolahdouz,35.78,51.48,District 1,-3.1,🟢 Stable
+Gheytariyeh,35.7883,51.4269,District 3,-2.9,🟢 Stable
+Shahid Zolfaghari,35.7753,51.4747,District 1,-1.6,🟢 Stable
+Shahid Sadr,35.7756,51.4272,District 3,0.1,🟢 Stable
+Niroo Havayi,35.77,51.47,District 1,1.2,🟢 Stable
+Nobonyad,35.7644,51.4753,District 3,2.3,🟢 Stable
+Vali Asr 18,35.65,51.275,District 17,2.9,🟢 Stable
+Hemmat,35.7539,51.4286,District 3,3.4,🟢 Stable
+Haghani,35.765,51.4278,District 3,5.4,🟢 Stable
+Meydan-e Sabalan,35.76,51.46,District 3,7.8,🟢 Stable
+Shahid Beheshti,35.7539,51.4753,District 3,8.0,🟢 Stable
+Meydan-e Sanat,35.76,51.37,District 2,9.7,🟢 Stable
+Boostan,35.75,51.38,District 6,10.1,🟢 Stable
+Mirdamad,35.7425,51.4292,District 7,10.4,🟢 Stable
+Hakim,35.75,51.45,District 3,11.1,🟢 Stable
+Vali-e Asr,35.7428,51.475,District 8,12.3,🟢 Stable
+Meydan-e Enghelab-e Eslami,35.74,51.39,District 6,15.0,🟢 Stable
+Rahahan,35.74,51.44,District 7,15.1,🟢 Stable
+Meydan-e Jahad,35.7319,51.4747,District 8,17.0,🟢 Stable
+Shariati,35.7342,51.4297,District 7,18.8,🟢 Stable
+Towhid,35.73,51.4,District 6,20.1,🟢 Stable
+Meydan-e Enghelab,35.73,51.43,District 7,20.1,🟢 Stable
+Imam Hossein,35.71,51.502,District 8,20.2,🟢 Stable
+Shahrak Shariati,35.66,51.325,District 10,20.9,🟢 Stable
+Meydan-e Vali-e Asr,35.7211,51.4742,District 8,20.9,🟢 Stable
+Meydan-e Shohada,35.7106,51.4903,District 8,21.8,🟢 Stable
+Sabalan,35.7089,51.4783,District 8,22.7,🟢 Stable
+Haft-e Tir,35.7214,51.4303,District 7,23.6,🟢 Stable
+Darvazeh Shemiran,35.7072,51.4669,District 13,24.7,🟢 Stable
+Azadi,35.72,51.42,District 6,25.2,🟢 Stable
+Baharestan,35.7053,51.4544,District 13,26.9,🟢 Stable
+Aliabad,35.61,51.41,District 12,27.2,🟢 Stable
+Iran Khodro,35.71,51.33,District 9,28.8,🟢 Stable
+Ferdowsi,35.7039,51.4428,District 13,29.0,🟢 Stable
+Daneshgah,35.7031,51.4325,District 13,30.3,🟢 Stable
+Shahid Towfiq,35.7011,51.3881,District 11,31.0,🟢 Stable
+Taleghani,35.7008,51.4306,District 13,31.1,🟢 Stable
+Meydan-e Enghelab,35.7025,51.4164,District 11,31.4,🟢 Stable
+Shademan,35.7014,51.4,District 11,31.8,🟢 Stable
+Varzeshgah,35.72,51.27,District 5,32.0,🟢 Stable
+Sadeghieh,35.7008,51.3753,District 9,32.0,🟢 Stable
+Khazane,35.6583,51.4244,District 12,32.9,🟢 Stable
+Chitgar,35.715,51.3,District 9,33.7,🟢 Stable
+Shush,35.6494,51.4208,District 12,33.8,🟢 Stable
+Panzdah-e Khordad,35.6681,51.4278,District 12,35.2,🟢 Stable
+Eram-e Sabz,35.7003,51.3519,District 9,35.6,🟢 Stable
+Shohada,35.6792,51.4303,District 12,35.7,🟢 Stable
+Vardavard,35.735,51.17,District 22,37.2,🟢 Stable
+Meydan-e Mohammadiyeh,35.6386,51.4172,District 12,37.5,🟢 Stable
+Payaneh Jonoob,35.6267,51.4114,District 12,38.5,🟢 Stable
+Shahr-e Ziba,35.73,51.2,District 22,38.7,🟢 Stable
+Golshahr,35.725,51.24,District 22,39.6,🟢 Stable
+Abdolabad,35.665,51.32,District 17,42.1,🟢 Stable
+Shahr-e Rey,35.595,51.415,District 12,44.0,🟢 Stable

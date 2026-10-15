@@ -1,0 +1,6 @@
+﻿name,name_fa,lat,lon,type,importance,district,mean_velocity,min_velocity,std_velocity,risk,future_5yr_mm,future_10yr_mm,n_pixels,analysis_type,notes
+Imam Khomeini International Airport,فرودگاه بین‌المللی امام خمینی,35.4161,51.1522,International,Very High,Outside Tehran,-11.68,-30.64,5.95,🟢 Stable,-58.4,-116.8,100,estimated,خارج از محدوده InSAR (lat=35.42 < 35.60)
+Ghaleh Morghi Airport,فرودگاه قلعه مرغی,35.6447,51.3811,Military,Medium,District 10,-11.06,-89.43,30.05,🟢 Stable,-55.3,-110.6,1603,direct,Direct measurement
+Payam International Airport,فرودگاه پیام,35.7761,50.8269,Cargo,Medium,Outside Tehran,-4.23,-68.75,32.23,🟢 Stable,-21.2,-42.3,100,estimated,خارج از محدوده InSAR (lon=50.83 < 51.20)
+Doshan Tappeh Air Base,پایگاه هوایی دوشان‌تپه,35.7028,51.4756,Military,Medium,District 13,25.01,20.14,2.57,🟢 Stable,125.1,250.1,1600,direct,Direct measurement
+Mehrabad International Airport,فرودگاه مهرآباد,35.6892,51.3134,International,High,District 9,43.07,0.0,5.31,🟢 Stable,215.3,430.7,1601,direct,Direct measurement

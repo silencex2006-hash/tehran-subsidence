@@ -1,0 +1,57 @@
+{
+  "project_info": {
+    "name": "Tehran Subsidence Matrix",
+    "region": "Tehran, Iran",
+    "period": "January - December 2024",
+    "satellite": "Sentinel-1 (ESA)",
+    "orbit": "Ascending (path 130)",
+    "processor": "ASF HyP3 + MintPy 1.6.4"
+  },
+  "methodology": {
+    "insar": "Small Baseline Subset (SBAS)",
+    "unwrapping": "MCF",
+    "corrections": [
+      "Topographic residual (polyOrder=2)",
+      "Tropospheric delay (height_correlation)",
+      "Linear deramp"
+    ],
+    "reference": "35.68156°N, 51.53089°E"
+  },
+  "data_quality": {
+    "n_pairs": 29,
+    "n_dates": 30,
+    "coherence_mean": 0.88,
+    "coverage_ascending": "20.3%",
+    "coverage_descending": "99.7%",
+    "coverage_combined": "100%"
+  },
+  "key_findings": {
+    "max_subsidence": "-181.8 mm/yr (south Tehran)",
+    "median_velocity": "-8.89 mm/yr (ascending)",
+    "critical_districts": [
+      "District 19",
+      "District 16",
+      "District 20"
+    ],
+    "population_at_risk": "1.28M"
+  },
+  "predictions": {
+    "horizon_years": 5,
+    "method": "Linear regression on timeseries",
+    "worst_case_2029": "-287 mm"
+  },
+  "limitations": [
+    "Descending orbit quality issues (low correlation with ascending)",
+    "~80% NaN in ascending (unwrap failures in south Tehran)",
+    "No GNSS validation data",
+    "Interpolation-based coverage for gaps",
+    "Ascending only (no full 2D decomposition)"
+  ],
+  "software_used": {
+    "mintpy": "1.6.4",
+    "hyp3": "ASF",
+    "python": "3.13",
+    "streamlit": "latest",
+    "plotly": "latest"
+  }
+}

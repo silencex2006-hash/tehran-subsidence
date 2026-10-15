@@ -1,0 +1,153 @@
+{
+  "project_info": {
+    "title": "Tehran Subsidence Monitoring using Sentinel-1 InSAR",
+    "period": "January 2024 - December 2024",
+    "satellite": "Sentinel-1 (ESA)",
+    "analysis_type": "InSAR Time-Series Analysis",
+    "spatial_coverage": "Tehran Metropolitan Area (22 Districts)",
+    "temporal_resolution": "12 days",
+    "spatial_resolution": "10 meters"
+  },
+  "methodology": {
+    "data_acquisition": {
+      "satellite": "Sentinel-1 A/B",
+      "orbit": "Descending (Path 35)",
+      "acquisitions": 29,
+      "date_range": "2024-01-13 to 2024-12-26",
+      "polarization": "VV+VH"
+    },
+    "insar_processing": {
+      "primary_processor": "ASF HyP3 (NASA)",
+      "interferogram_formation": "28 pairs (consecutive acquisitions)",
+      "phase_unwrapping": "Minimum Cost Flow (MCF)",
+      "coherence_threshold": 0.7,
+      "looks": "20x4 multilook"
+    },
+    "time_series_analysis": {
+      "software": "MintPy v1.6.4",
+      "inversion_method": "Weighted Least Squares",
+      "reference_point": {
+        "latitude": 35.78,
+        "longitude": 51.45,
+        "location": "North Tehran (Tajrish area)",
+        "reason": "Assumed stable reference in Alborz foothills"
+      },
+      "network_construction": "Sequential pairs",
+      "min_temporal_coherence": 0.7
+    },
+    "corrections_applied": [
+      {
+        "type": "Orbital Ramp",
+        "method": "Linear deramping",
+        "purpose": "Remove satellite orbit errors"
+      },
+      {
+        "type": "Topographic Phase",
+        "method": "DEM error correction (Fattahi & Amelung)",
+        "purpose": "Remove DEM-related phase residuals"
+      },
+      {
+        "type": "Tropospheric Delay",
+        "method": "Height correlation (Doin et al.)",
+        "purpose": "Correct atmospheric phase screen"
+      },
+      {
+        "type": "Phase Unwrapping Error",
+        "method": "Disabled (high coherence data)",
+        "purpose": "Not needed due to high data quality"
+      }
+    ]
+  },
+  "statistics": {
+    "mean_velocity_mm_yr": 6.31,
+    "median_velocity_mm_yr": 12.24,
+    "std_mm_yr": 32.36,
+    "max_subsidence_mm_yr": -181.81,
+    "max_uplift_mm_yr": 61.24,
+    "total_pixels": 126387,
+    "critical_pixels": 1258,
+    "warning_pixels": 7372,
+    "moderate_pixels": 12105,
+    "stable_pixels": 53166,
+    "uplift_pixels": 52486,
+    "percent_critical": 1.0,
+    "percent_warning": 5.83,
+    "percent_moderate": 9.58,
+    "percent_stable": 42.07,
+    "percent_uplift": 41.53
+  },
+  "key_findings": {
+    "critical_districts": [
+      "District 19",
+      "District 16",
+      "District 20",
+      "District 10",
+      "District 18"
+    ],
+    "critical_velocities": [
+      -48.4,
+      -42.1,
+      -33.4,
+      -23.6,
+      -23.6
+    ],
+    "total_districts": 22,
+    "population_at_risk": 1277995,
+    "population_percent_at_risk": 14.7,
+    "critical_metro_stations": 12,
+    "warning_metro_stations": 5,
+    "prediction_mean_r2": 0.747
+  },
+  "limitations": [
+    "All velocities are RELATIVE to the reference point in north Tehran",
+    "Absolute velocities require GNSS calibration (not available in this study)",
+    "Positive values indicate stability relative to reference, not true uplift",
+    "District boundaries are approximate (Voronoi-based around known district centers)",
+    "3 districts have low prediction confidence (R² < 0.5): District 3, District 2, District 5",
+    "Imam Khomeini and Payam airports are outside InSAR coverage - values are estimated",
+    "Sentinel-1 ascending data was not included in this analysis",
+    "Temporal coverage is limited to 12 months (2024)"
+  ],
+  "interpretation": {
+    "critical_zones": "Districts District 19, District 16, District 20, District 10, District 18 in southern and southwestern Tehran show severe subsidence (-48 to -24 mm/yr)",
+    "stable_zones": "Northern and eastern districts (1, 2, 3, 6, 7, 9, 12) appear stable or positive relative to reference",
+    "positive_values": "Values > 0 mm/yr likely reflect: (1) relative stability compared to subsiding south, (2) possible natural uplift, (3) small residual systematic errors",
+    "population_risk": "Approximately 1,277,995 people (14.7%) live in high-risk districts",
+    "infrastructure_risk": "Metro stations in Districts 10, 16, 17, 18 are in critical condition",
+    "main_cause": "Groundwater over-extraction is the primary driver of subsidence in southern Tehran"
+  },
+  "predictions": {
+    "method": "Linear/Poly-2 regression on 29 SAR acquisitions",
+    "forecast_period": "2024-2029 (5 years)",
+    "uncertainty": "95% confidence intervals provided",
+    "worst_case": {
+      "district": "District 19",
+      "predicted_2029_mm": -286.7,
+      "risk_level": "🔴 Very High"
+    }
+  },
+  "recommendations": [
+    "Install continuous GNSS stations in critical districts for absolute calibration",
+    "Expand InSAR analysis to include ascending orbit data",
+    "Integrate groundwater level data for causal analysis",
+    "Develop early warning system for critical infrastructure (metro, airports)",
+    "Conduct field surveys to validate InSAR results",
+    "Use higher resolution DEM for improved topographic correction",
+    "Extend temporal coverage to multi-year analysis (2020-2024)"
+  ],
+  "data_quality": {
+    "temporal_coherence": "High (mean > 0.85)",
+    "spatial_coverage": "Complete for study area",
+    "acquisition_density": "Good (29 images over 12 months)",
+    "network_redundancy": "Minimal (sequential pairs only)",
+    "reference_stability": "Assumed (needs validation)"
+  },
+  "software_used": {
+    "data_download": "ASF HyP3 SDK, asf_search",
+    "insar_processing": "ASF HyP3 (cloud service)",
+    "time_series": "MintPy v1.6.4",
+    "gis_analysis": "GeoPandas, Shapely, Rasterio",
+    "machine_learning": "scikit-learn (Linear, Ridge, Polynomial)",
+    "visualization": "Plotly, PyDeck, Matplotlib, Streamlit"
+  }
+}

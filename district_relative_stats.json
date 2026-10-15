@@ -1,0 +1,134 @@
+{
+  "District 1": {
+    "n_asc": 511,
+    "n_desc": 3807,
+    "median_asc": -20.254030227661133,
+    "median_desc": -6.571345329284668
+  },
+  "District 2": {
+    "n_asc": 0,
+    "n_desc": 9876,
+    "median_asc": null,
+    "median_desc": 11.392626762390137
+  },
+  "District 3": {
+    "n_asc": 0,
+    "n_desc": 4522,
+    "median_asc": null,
+    "median_desc": 2.8214995861053467
+  },
+  "District 4": {
+    "n_asc": 14812,
+    "n_desc": 15607,
+    "median_asc": -10.924026489257812,
+    "median_desc": -10.746790885925293
+  },
+  "District 5": {
+    "n_asc": 0,
+    "n_desc": 8875,
+    "median_asc": null,
+    "median_desc": 18.555461883544922
+  },
+  "District 6": {
+    "n_asc": 0,
+    "n_desc": 5704,
+    "median_asc": null,
+    "median_desc": 15.034608840942383
+  },
+  "District 7": {
+    "n_asc": 0,
+    "n_desc": 2362,
+    "median_asc": null,
+    "median_desc": 19.051809310913086
+  },
+  "District 8": {
+    "n_asc": 655,
+    "n_desc": 4387,
+    "median_asc": 3.322972297668457,
+    "median_desc": 15.2868070602417
+  },
+  "District 9": {
+    "n_asc": 0,
+    "n_desc": 6253,
+    "median_asc": null,
+    "median_desc": 34.97633361816406
+  },
+  "District 10": {
+    "n_asc": 0,
+    "n_desc": 4481,
+    "median_asc": null,
+    "median_desc": -14.944612503051758
+  },
+  "District 11": {
+    "n_asc": 0,
+    "n_desc": 3379,
+    "median_asc": null,
+    "median_desc": 33.204280853271484
+  },
+  "District 12": {
+    "n_asc": 0,
+    "n_desc": 6532,
+    "median_asc": null,
+    "median_desc": 34.39622116088867
+  },
+  "District 13": {
+    "n_asc": 0,
+    "n_desc": 2397,
+    "median_asc": null,
+    "median_desc": 28.709938049316406
+  },
+  "District 14": {
+    "n_asc": 1842,
+    "n_desc": 5980,
+    "median_asc": -1.1996147632598877,
+    "median_desc": 24.59947395324707
+  },
+  "District 15": {
+    "n_asc": 5890,
+    "n_desc": 13541,
+    "median_asc": -5.413570404052734,
+    "median_desc": 19.051237106323242
+  },
+  "District 16": {
+    "n_asc": 0,
+    "n_desc": 4342,
+    "median_asc": null,
+    "median_desc": -32.00807189941406
+  },
+  "District 17": {
+    "n_asc": 0,
+    "n_desc": 5138,
+    "median_asc": null,
+    "median_desc": 28.247785568237305
+  },
+  "District 18": {
+    "n_asc": 0,
+    "n_desc": 4293,
+    "median_asc": null,
+    "median_desc": -34.35942459106445
+  },
+  "District 19": {
+    "n_asc": 0,
+    "n_desc": 2567,
+    "median_asc": null,
+    "median_desc": -54.753238677978516
+  },
+  "District 20": {
+    "n_asc": 0,
+    "n_desc": 1340,
+    "median_asc": null,
+    "median_desc": -34.47319412231445
+  },
+  "District 21": {
+    "n_asc": 0,
+    "n_desc": 6180,
+    "median_asc": null,
+    "median_desc": 44.84365463256836
+  },
+  "District 22": {
+    "n_asc": 0,
+    "n_desc": 4463,
+    "median_asc": null,
+    "median_desc": 31.92142105102539
+  }
+}

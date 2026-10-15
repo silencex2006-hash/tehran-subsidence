@@ -1,0 +1,35 @@
+TEHRAN SUBSIDENCE ANALYSIS - METHODOLOGY SUMMARY
+============================================================
+
+Period:      January - December 2024
+Satellite:   Sentinel-1 (ESA)
+Processing:  ASF HyP3 + MintPy 1.6.4
+Coverage:    22 districts of Tehran
+Method:      SBAS (Small Baseline Subset) InSAR
+
+KEY RESULTS
+-----------
+• Max Subsidence:    -181.8 mm/yr (south Tehran)
+• Median Velocity:   -8.89 mm/yr (ascending)
+• Critical Pixels:   1,258
+• Population at Risk: 1.28M
+
+CRITICAL DISTRICTS
+------------------
+1. District 19
+2. District 16
+3. District 20
+
+FORECAST 2029
+-------------
+• Method: Linear regression
+• Worst case: -287 mm
+
+LIMITATIONS
+-----------
+• ~80% NaN in ascending (unwrap failures)
+• Descending quality issues
+• No GNSS validation
+• Interpolation for gap filling
+
+Software: MintPy 1.6.4, HyP3, Python 3.13, Streamlit
