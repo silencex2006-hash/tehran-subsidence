@@ -721,7 +721,7 @@ if page == "🛸 3D CITY SCAN":
         layers=layers,
         initial_view_state=view_state,
         tooltip=tooltip,
-        map_style="carto-darkmatter",
+        map_style="open-street-map",
     )
     
     st.pydeck_chart(deck, use_container_width=True)
@@ -1077,8 +1077,7 @@ elif page == "🏠 OVERVIEW":
             
             fig.update_layout(
                 mapbox=dict(
-                    style='carto-darkmatter',
-                    accesstoken=MAPBOX_TOKEN if MAPBOX_TOKEN else None,
+                    style='open-street-map',
                     center=dict(lat=35.7, lon=51.4),
                     zoom=10
                 ),
@@ -1331,8 +1330,7 @@ elif page == "🗺️ INTERACTIVE MAP":
                     ))
             
             fig.update_layout(
-                mapbox=dict(style="carto-darkmatter", center=dict(lat=35.7, lon=51.4), zoom=11),
-                accesstoken=MAPBOX_TOKEN if MAPBOX_TOKEN else None,
+                mapbox=dict(style="open-street-map", center=dict(lat=35.7, lon=51.4), zoom=11),
                 height=700,
                 margin=dict(r=0, t=20, l=0, b=0),
                 paper_bgcolor="#05070d",
@@ -1389,8 +1387,7 @@ elif page == "🗺️ INTERACTIVE MAP":
                     [1.0, "#00FF88"]
                 ],
                 range_color=(-200, 0),
-                mapbox_style="carto-darkmatter",
-                mapbox_token=MAPBOX_TOKEN if MAPBOX_TOKEN else None,
+                mapbox_style="open-street-map",
                 zoom=10,
                 center={"lat": 35.7, "lon": 51.4},
                 opacity=0.75,
@@ -2355,8 +2352,7 @@ elif page == "🔮 FORECAST 2029":
                         [1.0, "#00FF88"]
                     ],
                     range_color=(-400, 100),
-                    mapbox_style="carto-darkmatter",
-                    mapbox_token=MAPBOX_TOKEN if MAPBOX_TOKEN else None,
+                    mapbox_style="open-street-map",
                     zoom=10,
                     center={"lat": 35.7, "lon": 51.4},
                     opacity=0.8,
@@ -2795,8 +2791,7 @@ elif page == "🎬 ANIMATION":
 
         # ⭐ View State با zoom
         view_state = {
-            "style": "carto-darkmatter",
-            "accesstoken": MAPBOX_TOKEN if MAPBOX_TOKEN else None,
+            "style": "open-street-map",
             "center": {"lat": 35.7, "lon": 51.4},
             "zoom": 11
         }
@@ -3126,8 +3121,7 @@ elif page == "🚨 RISK MAP":
 
                 fig.update_layout(
                     mapbox=dict(
-                        style="carto-darkmatter",
-                        accesstoken=MAPBOX_TOKEN if MAPBOX_TOKEN else None,
+                        style="open-street-map",
                         center=dict(lat=35.7, lon=51.4),
                         zoom=10.5
                     ),
@@ -3512,8 +3506,7 @@ elif page == "🚇 INFRASTRUCTURE":
 
                 fig.update_layout(
                     mapbox=dict(
-                        style="carto-darkmatter",
-                        accesstoken=MAPBOX_TOKEN if MAPBOX_TOKEN else None,
+                        style="open-street-map",
                         center=dict(lat=35.7, lon=51.4),
                         zoom=11
                     ),
@@ -3634,8 +3627,7 @@ elif page == "🚇 INFRASTRUCTURE":
 
             fig_air.update_layout(
                 mapbox=dict(
-                    style="carto-darkmatter",
-                    accesstoken=MAPBOX_TOKEN if MAPBOX_TOKEN else None,
+                    style="open-street-map",
                     center=dict(lat=35.6, lon=51.35),
                     zoom=10
                 ),
@@ -3757,8 +3749,7 @@ elif page == "🚇 INFRASTRUCTURE":
                             [0.8, "#FF7800"],
                             [1.0, "#FF1432"]
                         ],
-                        mapbox_style="carto-darkmatter",
-                        mapbox_token=MAPBOX_TOKEN if MAPBOX_TOKEN else None,
+                        mapbox_style="open-street-map",
                         zoom=10,
                         center={"lat": 35.7, "lon": 51.4},
                         opacity=0.8,
@@ -4114,8 +4105,7 @@ elif page == "🔥 HOTSPOTS":
 
         fig.update_layout(
             mapbox=dict(
-                style="carto-darkmatter",
-                accesstoken=MAPBOX_TOKEN if MAPBOX_TOKEN else None,
+                style="open-street-map",
                 center=dict(lat=35.7, lon=51.4),
                 zoom=11
             ),
