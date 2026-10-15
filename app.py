@@ -1,3 +1,4 @@
+
 import streamlit as st
 import numpy as np
 import json
@@ -12,12 +13,6 @@ import gzip
 from datetime import datetime
 
 st.set_page_config(page_title="Tehran Subsidence Matrix", page_icon="🛸", layout="wide")
-
-# ⭐ Mapbox token
-try:
-    MAPBOX_TOKEN = st.secrets.get("MAPBOX_TOKEN", "")
-except Exception:
-    MAPBOX_TOKEN = ""
 
 st.markdown("""
 <style>
@@ -195,6 +190,8 @@ def make_joined_from_vel(vel_array, districts_gdf, lons_grid, lats_grid, step=1)
     df = df[df['district_name'] != 'Unknown'].reset_index(drop=True)
     
     return df
+
+
 
 
 # ⭐ لود داده‌های اصلی
@@ -432,6 +429,8 @@ with st.sidebar:
 
 # ⭐⭐⭐ PREP 3D DATA ⭐⭐⭐
 
+# ⭐ لود داده 3D قبل از استفاده در صفحات
+# ⭐ انتخاب لایه فعال
 # ⭐ لود داده‌های چند لایه (قبل از استفاده)
 multi_layer = load_multi_layer()
 
@@ -454,20 +453,23 @@ try:
 except Exception as e:
     print(f"[DATA] خطا: {e}")
 
+# ⭐ prep_3d با لایه فعال
 # ⭐ threshold تطبیقی در واحد m/yr
 _vel_valid = vel_active[~np.isnan(vel_active)]
 _vel_med = np.nanmedian(_vel_valid)
 _vel_min = np.nanmin(_vel_valid)
 
+# آستانه: 10 میلی‌متر بر سال = 0.01 m/yr
+# یا بهتر: هرچی کمتر از میانه منهای نصف دامنه
 threshold_mm = -10  # mm/yr
 threshold_use = threshold_mm / 1000  # m/yr = -0.01
 
 # اگه داده کم بود، شل‌تر کن
 _potential = (_vel_valid < threshold_use).sum()
 if _potential < 500:
-    threshold_use = -3 / 1000
+    threshold_use = -3 / 1000  # -3 mm/yr
 if _potential < 100:
-    threshold_use = -1 / 1000
+    threshold_use = -1 / 1000  # -1 mm/yr
 
 print(f"[DEBUG] vel range: {_vel_min*1000:.1f} → {np.nanmax(_vel_valid)*1000:.1f} mm/yr")
 print(f"[DEBUG] threshold: {threshold_use*1000:.1f} mm/yr")
@@ -478,7 +480,7 @@ wells_df, bld_geojson, dist_geojson, metro_geojson = prep_3d(
 )
 
 # ⭐ آستانه wells_filtered هم تنظیم کن
-_threshold_wells = threshold_use * 0.5
+_threshold_wells = threshold_use * 0.5  # نصف آستانه
 wells_df['color'] = wells_df['velocity'].apply(lambda v: get_well_color(v, viz_mode))
 
 # ⭐⭐⭐ PAGE 1: 3D CITY SCAN ⭐⭐⭐
@@ -525,7 +527,7 @@ if page == "🛸 3D CITY SCAN":
     
     # ⭐ فیلتر wells (همه چاه‌های منفی)
     if len(wells_df) > 0:
-        _thresh_w = -0.5 / 1000
+        _thresh_w = -0.5 / 1000  # -0.5 mm/yr
         wells_filtered = wells_df[wells_df['velocity'] <= _thresh_w].copy()
     else:
         wells_filtered = wells_df.copy()
@@ -535,7 +537,7 @@ if page == "🛸 3D CITY SCAN":
             lambda v: get_well_color(v, viz_mode)
         )
     
-    # ⭐ 4 کارت بالا
+    # ⭐ 4 کارت بالا (خلاصه)
     _n_bld = len(bld_geojson['features']) if bld_geojson and 'features' in bld_geojson else 0
     _n_wells = len(wells_filtered)
     _max_w = wells_filtered["depth_mm"].max() if _n_wells > 0 else 0
@@ -614,7 +616,9 @@ if page == "🛸 3D CITY SCAN":
         _wf['g'] = _wf['velocity'].apply(lambda v: _well_color(v)[1])
         _wf['b'] = _wf['velocity'].apply(lambda v: _well_color(v)[2])
         
+        # ⭐ چاه‌ها — بر اساس view_mode
         if "Height" in view_mode:
+            # ستون به بالا (با نقشه)
             layers.append(pdk.Layer(
                 'ColumnLayer',
                 data=_wf,
@@ -629,7 +633,9 @@ if page == "🛸 3D CITY SCAN":
                 pickable=True,
                 auto_highlight=True,
             ))
+
         else:
+            # دایره (روی نقشه)
             layers.append(pdk.Layer(
                 'ScatterplotLayer',
                 data=_wf,
@@ -687,6 +693,7 @@ if page == "🛸 3D CITY SCAN":
             pickable=True,
         ))
     
+    # ⭐ ViewState — مرکز درست
     view_state = pdk.ViewState(
         latitude=35.70,
         longitude=51.40,
@@ -695,6 +702,7 @@ if page == "🛸 3D CITY SCAN":
         bearing=-25,
     )
     
+    # ⭐ Tooltip — از depth_mm
     tooltip = {
         "html": """
         <div style="font-family: Courier New; background: rgba(0,0,0,0.9); 
@@ -708,6 +716,7 @@ if page == "🛸 3D CITY SCAN":
         "style": {"backgroundColor": "transparent"}
     }
     
+    # ⭐ Deck
     deck = pdk.Deck(
         layers=layers,
         initial_view_state=view_state,
@@ -717,7 +726,7 @@ if page == "🛸 3D CITY SCAN":
     
     st.pydeck_chart(deck, use_container_width=True)
     
-    # ⭐ Time Series
+    # ⭐ Time Series (امن)
     st.markdown("---")
     st.markdown("### 📊 Time Series Analysis")
     
@@ -755,7 +764,9 @@ if page == "🛸 3D CITY SCAN":
             selected_idx = point_names.index(selected_point_name)
             selected_point = district_pts.iloc[selected_idx]
     
+    # نمودار (امن)
     if district_pts is not None and len(district_pts) > 0 and selected_point is not None:
+        # row/col مستقیم (بدون patch قدیمی)
         try:
             row = int(selected_point.get('row', 139))
             col = int(selected_point.get('col', 209))
@@ -765,7 +776,7 @@ if page == "🛸 3D CITY SCAN":
             row, col = 139, 209
         
         point_ts = timeseries[:, row, col]
-        point_ts = point_ts - point_ts[0]
+        point_ts = point_ts - point_ts[0]  # already in mm
         
         fig = go.Figure()
         fig.add_trace(go.Scatter(
@@ -793,6 +804,7 @@ if page == "🛸 3D CITY SCAN":
 
 
 elif page == "🏠 OVERVIEW":
+    # ⭐ بنر منبع فعال (همه صفحات)
     _s = f"📡 {source_label}"
     if vel_active is not None:
         _n = int((~np.isnan(vel_active)).sum())
@@ -821,6 +833,7 @@ elif page == "🏠 OVERVIEW":
     </div>
     """, unsafe_allow_html=True)
 
+    # ⭐ CSS اضافی برای این صفحه
     st.markdown("""
     <style>
     .kpi-card {
@@ -903,6 +916,7 @@ elif page == "🏠 OVERVIEW":
     </style>
     """, unsafe_allow_html=True)
     
+    # ⭐ هدر اصلی
     st.markdown("""
     <div style="background: linear-gradient(135deg, #0a0e27 0%, #1a1a4e 50%, #0a0e27 100%);
                 padding: 2rem; border-radius: 15px; text-align: center;
@@ -924,10 +938,12 @@ elif page == "🏠 OVERVIEW":
     </div>
     """, unsafe_allow_html=True)
     
+    # ⭐ محاسبه آمار
     if joined_df is not None:
+        # آمار از vel_active (داینامیک بر اساس Data Source)
         if vel_active is not None:
-            _v_all = vel_active[~np.isnan(vel_active)] * 1000
-            _v = _v_all[_v_all < 0]
+            _v_all = vel_active[~np.isnan(vel_active)] * 1000  # mm/yr
+            _v = _v_all[_v_all < 0]  # ⭐ فقط منفی‌ها
             total_pixels = len(_v)
             mean_vel = float(np.mean(_v)) if len(_v) > 0 else 0
             min_vel = float(np.min(_v)) if len(_v) > 0 else 0
@@ -936,14 +952,18 @@ elif page == "🏠 OVERVIEW":
             mean_vel = 0
             min_vel = 0
         
+        # مناطق بحرانی از joined_df (داینامیک)
         stats = joined_df.groupby('district_name')['velocity'].mean().sort_values()
+        # velocity الان در joined_df به mm/yr هست
         stats_mm = stats
         critical_districts = stats_mm[stats_mm < -30]
         n_critical = len(critical_districts)
         
+        # جمعیت در خطر
         total_affected = df_pop['affected_population'].sum() if df_pop is not None else 0
         affected_pct = total_affected / df_pop['population'].sum() * 100 if df_pop is not None else 0
         
+        # ⭐ Row 1: 3 کارت اصلی
         c1, c2, c3 = st.columns(3)
         
         with c1:
@@ -976,6 +996,7 @@ elif page == "🏠 OVERVIEW":
             </div>
             """, unsafe_allow_html=True)
         
+        # ⭐ Row 2: 2 کارت آماری
         c4, c5 = st.columns(2)
         
         with c4:
@@ -998,13 +1019,16 @@ elif page == "🏠 OVERVIEW":
             </div>
             """, unsafe_allow_html=True)
         
+        # ⭐ بخش نقشه + Top 10
         st.markdown("---")
         
         col_map, col_list = st.columns([2, 1])
         
+        # نقشه
         with col_map:
             st.markdown("### 🗺️ Tehran Subsidence Map")
             
+            # Heatmap
             fig = go.Figure()
             fig.add_trace(go.Scattermapbox(
                 lon=joined_df['lon'],
@@ -1022,7 +1046,7 @@ elif page == "🏠 OVERVIEW":
                         [1.0, '#00FF88']
                     ],
                     cmin=-150,
-                    cmax=0,
+                    cmax=50,
                     colorbar=dict(
                         title=dict(text='Velocity<br>(mm/yr)', font=dict(color='#7ee7ff', size=12)),
                         tickfont=dict(color='#7ee7ff'),
@@ -1035,6 +1059,7 @@ elif page == "🏠 OVERVIEW":
                 showlegend=False
             ))
             
+            # مرزها
             if districts_gdf is not None:
                 for _, r in districts_gdf.iterrows():
                     g = r.geometry
@@ -1065,6 +1090,7 @@ elif page == "🏠 OVERVIEW":
             
             st.plotly_chart(fig, use_container_width=True)
         
+        # Top 10 میله‌ای
         with col_list:
             st.markdown("### 🔴 Top 10 Critical")
             
@@ -1111,10 +1137,12 @@ elif page == "🏠 OVERVIEW":
             
             st.plotly_chart(fig2, use_container_width=True)
         
+        # ⭐ جدول کامل ۲۲ منطقه
         st.markdown("---")
         st.markdown("### 📋 Full District Analysis")
         
         if df_pop is not None:
+            # جدول با اطلاعات کامل
             table = df_pop[['rank', 'district_name', 'mean_velocity', 
                            'population', 'affected_population', 
                            'risk_index', 'risk_category']].copy()
@@ -1138,6 +1166,7 @@ elif page == "🏠 OVERVIEW":
             )
 
 elif page == "🗺️ INTERACTIVE MAP":
+    # ⭐ بنر منبع فعال (همه صفحات)
     _s = f"📡 {source_label}"
     if vel_active is not None:
         _n = int((~np.isnan(vel_active)).sum())
@@ -1166,6 +1195,7 @@ elif page == "🗺️ INTERACTIVE MAP":
     </div>
     """, unsafe_allow_html=True)
 
+    # ⭐ هدر
     st.markdown("""
     <div style="background: linear-gradient(135deg, #0a0e27 0%, #1a1a4e 50%, #0a0e27 100%);
                 padding: 1.5rem; border-radius: 15px; text-align: center;
@@ -1183,6 +1213,7 @@ elif page == "🗺️ INTERACTIVE MAP":
     </div>
     """, unsafe_allow_html=True)
 
+    # ⭐ تنظیمات نمایش
     col1, col2 = st.columns([1, 2])
 
     with col1:
@@ -1204,6 +1235,9 @@ elif page == "🗺️ INTERACTIVE MAP":
 
     st.markdown("---")
 
+    # ============================================================
+    # ⭐ حالت Heatmap
+    # ============================================================
     if mode == "Heatmap":
         if joined_df is not None:
             sample_size = min(8000, len(joined_df))
@@ -1241,6 +1275,7 @@ elif page == "🗺️ INTERACTIVE MAP":
                 showlegend=False
             ))
             
+            # لایه مرزها
             if show_boundaries and districts_gdf is not None:
                 for _, r in districts_gdf.iterrows():
                     g = r.geometry
@@ -1257,6 +1292,7 @@ elif page == "🗺️ INTERACTIVE MAP":
                             hoverinfo="skip"
                         ))
             
+            # لایه مترو
             if show_metro and metro_gdf is not None:
                 for _, r in metro_gdf.iterrows():
                     g = r.geometry
@@ -1273,6 +1309,7 @@ elif page == "🗺️ INTERACTIVE MAP":
                             hoverinfo="skip"
                         ))
             
+            # لایه فرودگاه‌ها
             if show_airports and airports_gdf is not None:
                 for _, r in airports_gdf.iterrows():
                     g = r.geometry
@@ -1294,12 +1331,8 @@ elif page == "🗺️ INTERACTIVE MAP":
                     ))
             
             fig.update_layout(
-                mapbox=dict(
-                    style="carto-darkmatter",
-                    accesstoken=MAPBOX_TOKEN if MAPBOX_TOKEN else None,
-                    center=dict(lat=35.7, lon=51.4),
-                    zoom=11
-                ),
+                mapbox=dict(style="carto-darkmatter", center=dict(lat=35.7, lon=51.4), zoom=11),
+                accesstoken=MAPBOX_TOKEN if MAPBOX_TOKEN else None,
                 height=700,
                 margin=dict(r=0, t=20, l=0, b=0),
                 paper_bgcolor="#05070d",
@@ -1308,6 +1341,7 @@ elif page == "🗺️ INTERACTIVE MAP":
             
             st.plotly_chart(fig, use_container_width=True)
             
+            # آمار
             st.markdown("---")
             c1, c2, c3, c4 = st.columns(4)
             with c1:
@@ -1320,6 +1354,9 @@ elif page == "🗺️ INTERACTIVE MAP":
                 critical_count = (sample_df["velocity"] < -50).sum()
                 st.metric("Critical Points", f"{critical_count:,}")
 
+    # ============================================================
+    # ⭐ حالت Choropleth
+    # ============================================================
     else:
         if joined_df is not None and districts_gdf is not None:
             stats = joined_df.groupby("district_name").agg(
@@ -1329,9 +1366,11 @@ elif page == "🗺️ INTERACTIVE MAP":
             ).reset_index()
             
             merged = districts_gdf.merge(stats, on="district_name", how="left")
+            # fillna با 0 (نمایش "no data" به عنوان صفر)
             merged["mean_velocity"] = merged["mean_velocity"].fillna(0)
             merged["max_subsidence"] = merged["max_subsidence"].fillna(0)
             merged["pixel_count"] = merged["pixel_count"].fillna(0)
+            # ⭐ mask مناطق بدون داده
             merged["has_data"] = merged["pixel_count"] > 0
             
             merged_geojson = json.loads(merged.to_json())
@@ -1408,6 +1447,7 @@ elif page == "🗺️ INTERACTIVE MAP":
             
             st.plotly_chart(fig, use_container_width=True)
             
+            # جدول
             st.markdown("---")
             st.markdown("### 📊 District Summary")
             
@@ -1422,8 +1462,8 @@ elif page == "🗺️ INTERACTIVE MAP":
                 hide_index=True,
                 height=400
             )
-
 elif page == "📊 DISTRICT STATS":
+    # ⭐ بنر منبع فعال (همه صفحات)
     _s = f"📡 {source_label}"
     if vel_active is not None:
         _n = int((~np.isnan(vel_active)).sum())
@@ -1452,6 +1492,7 @@ elif page == "📊 DISTRICT STATS":
     </div>
     """, unsafe_allow_html=True)
 
+    # ⭐ هدر
     st.markdown("""
     <div style="background: linear-gradient(135deg, #0a0e27 0%, #1a1a4e 50%, #0a0e27 100%);
                 padding: 1.5rem; border-radius: 15px; text-align: center;
@@ -1470,6 +1511,7 @@ elif page == "📊 DISTRICT STATS":
     """, unsafe_allow_html=True)
 
     if joined_df is not None:
+        # ⭐ محاسبه آمار کامل
         stats = joined_df.groupby("district_name").agg(
             mean_velocity=("velocity", "mean"),
             max_subsidence=("velocity", "min"),
@@ -1477,12 +1519,14 @@ elif page == "📊 DISTRICT STATS":
             pixel_count=("velocity", "count")
         ).reset_index()
 
+        # اضافه کردن جمعیت از df_pop
         if df_pop is not None:
             pop_data = df_pop[["district_name", "population", "affected_population", "risk_index", "risk_category"]].copy()
             stats = stats.merge(pop_data, on="district_name", how="left")
 
         stats = stats.sort_values("mean_velocity")
 
+        # ⭐ کارت‌های آماری بالا
         n_critical = (stats["mean_velocity"] < -30).sum()
         n_warning = ((stats["mean_velocity"] >= -30) & (stats["mean_velocity"] < -20)).sum()
         n_stable = (stats["mean_velocity"] >= -20).sum()
@@ -1524,6 +1568,7 @@ elif page == "📊 DISTRICT STATS":
 
         st.markdown("---")
 
+        # ⭐ جدول کامل
         st.markdown("### 📋 Full District Table")
 
         display_cols = ["district_name", "mean_velocity", "max_subsidence",
@@ -1556,6 +1601,7 @@ elif page == "📊 DISTRICT STATS":
             height=600
         )
 
+        # ⭐ دکمه دانلود Excel
         try:
             import io
             import importlib
@@ -1571,6 +1617,7 @@ elif page == "📊 DISTRICT STATS":
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
         except Exception as e:
+            # fallback به CSV
             csv = stats.to_csv(index=False)
             st.download_button(
                 label="📥 Download as CSV",
@@ -1581,6 +1628,7 @@ elif page == "📊 DISTRICT STATS":
 
         st.markdown("---")
 
+        # ⭐ نمودار میله‌ای
         st.markdown("### 📊 Subsidence Rate by District")
 
         chart_df = stats.sort_values("mean_velocity")
@@ -1630,11 +1678,15 @@ elif page == "📊 DISTRICT STATS":
 
         st.plotly_chart(fig, use_container_width=True)
 
+        # ⭐ نمودار پراکندگی (velocity vs population)
         if "population" in stats.columns:
             st.markdown("---")
             st.markdown("### 🎯 Subsidence vs Population")
 
+            # فیلتر NaN
             scatter_df = stats.dropna(subset=["mean_velocity", "population"])
+
+            # اندازه بر اساس pixel_count
             sizes = np.sqrt(scatter_df["pixel_count"]) / 3
 
             fig2 = go.Figure()
@@ -1688,8 +1740,8 @@ elif page == "📊 DISTRICT STATS":
             )
 
             st.plotly_chart(fig2, use_container_width=True)
-
 elif page == "📈 TIME SERIES":
+    # ⭐ بنر منبع فعال (همه صفحات)
     _s = f"📡 {source_label}"
     if vel_active is not None:
         _n = int((~np.isnan(vel_active)).sum())
@@ -1718,6 +1770,7 @@ elif page == "📈 TIME SERIES":
     </div>
     """, unsafe_allow_html=True)
 
+    # ⭐ هدر
     st.markdown("""
     <div style="background: linear-gradient(135deg, #0a0e27 0%, #1a1a4e 50%, #0a0e27 100%);
                 padding: 1.5rem; border-radius: 15px; text-align: center;
@@ -1736,17 +1789,20 @@ elif page == "📈 TIME SERIES":
     """, unsafe_allow_html=True)
 
     if joined_df is not None and timeseries is not None:
+        # ⭐ محاسبه آمار مناطق
         district_stats = joined_df.groupby("district_name")["velocity"].mean().sort_values()
         all_districts = district_stats.index.tolist()
         top5_districts = district_stats.head(5).index.tolist()
         critical_districts = district_stats[district_stats < -30].index.tolist()
 
+        # ⭐ دکمه‌های سریع
         st.markdown("### 🎯 Quick Select")
         qc1, qc2, qc3, qc4 = st.columns(4)
 
         if "ts_selected" not in st.session_state:
             st.session_state.ts_selected = top5_districts[:3]
         else:
+            # ⭐ فیلتر district های موجود (بعد از تغییر Data Source)
             st.session_state.ts_selected = [
                 d for d in st.session_state.ts_selected if d in all_districts
             ]
@@ -1768,6 +1824,7 @@ elif page == "📈 TIME SERIES":
                 st.session_state.ts_selected = []
                 st.rerun()
 
+        # ⭐ multiselect
         selected = st.multiselect(
             "📍 Select Districts:",
             options=all_districts,
@@ -1778,6 +1835,7 @@ elif page == "📈 TIME SERIES":
         if selected:
             st.markdown("---")
 
+            # ⭐ محاسبه سری زمانی + روند + CI
             from scipy import stats as scipy_stats
 
             days = np.array([
@@ -1788,6 +1846,7 @@ elif page == "📈 TIME SERIES":
             colors = ["#FF1432", "#00d9ff", "#00FF88", "#FF7800", "#9b59b6", "#FFE600",
                      "#1abc9c", "#e74c3c", "#3498db", "#f39c12"]
 
+            # ⭐ نمودار خطی اصلی
             st.markdown("### 📈 Cumulative Displacement Over Time")
 
             fig = go.Figure()
@@ -1800,6 +1859,7 @@ elif page == "📈 TIME SERIES":
                 sample_size = min(200, len(pts))
                 pts_sample = pts.sample(n=sample_size, random_state=42)
 
+                # سری زمانی همه پیکسل‌ها
                 all_ts = []
                 for _, p in pts_sample.iterrows():
                     try:
@@ -1808,6 +1868,7 @@ elif page == "📈 TIME SERIES":
                         row = max(0, min(timeseries.shape[1] - 1, row))
                         col = max(0, min(timeseries.shape[2] - 1, col))
                         ts = timeseries[:, row, col]
+                        # ⭐ فیلتر NaN در ts[0]
                         if not np.all(np.isnan(ts)) and not np.isnan(ts[0]):
                             all_ts.append(ts - ts[0])
                     except:
@@ -1818,16 +1879,20 @@ elif page == "📈 TIME SERIES":
 
                 all_ts = np.array(all_ts)
 
+                # میانگین و انحراف معیار
                 mean_ts = np.nanmean(all_ts, axis=0)
                 std_ts = np.nanstd(all_ts, axis=0)
                 
+                # ⭐ فقط فرونشست: هرچی مثبت → صفر
                 mean_ts = np.minimum(mean_ts, 0.0)
 
                 color = colors[i % len(colors)]
 
+                # ⭐ باند اطمینان (95%)
                 ci_upper = mean_ts + 1.96 * std_ts / np.sqrt(len(all_ts))
                 ci_lower = mean_ts - 1.96 * std_ts / np.sqrt(len(all_ts))
 
+                # باند اطمینان
                 fig.add_trace(go.Scatter(
                     x=dates_fmt + dates_fmt[::-1],
                     y=list(ci_upper) + list(ci_lower[::-1]),
@@ -1838,6 +1903,7 @@ elif page == "📈 TIME SERIES":
                     hoverinfo="skip"
                 ))
 
+                # خط اصلی
                 fig.add_trace(go.Scatter(
                     x=dates_fmt,
                     y=mean_ts,
@@ -1848,6 +1914,7 @@ elif page == "📈 TIME SERIES":
                     hovertemplate=f"<b>{district}</b><br>Displacement: %{{y:.2f}} mm<extra></extra>"
                 ))
 
+                # ⭐ خط روند
                 valid_mask = ~np.isnan(mean_ts)
                 if valid_mask.sum() > 5:
                     slope, intercept, r_value, p_value, std_err = scipy_stats.linregress(
@@ -1892,6 +1959,7 @@ elif page == "📈 TIME SERIES":
 
             st.plotly_chart(fig, use_container_width=True)
 
+            # ⭐ جدول آمار زمانی
             st.markdown("---")
             st.markdown("### 📊 Temporal Statistics")
 
@@ -1912,6 +1980,7 @@ elif page == "📈 TIME SERIES":
                         row = max(0, min(timeseries.shape[1] - 1, row))
                         col = max(0, min(timeseries.shape[2] - 1, col))
                         ts = timeseries[:, row, col]
+                        # ⭐ فیلتر NaN در ts[0]
                         if not np.all(np.isnan(ts)) and not np.isnan(ts[0]):
                             all_ts.append(ts - ts[0])
                     except:
@@ -1923,6 +1992,7 @@ elif page == "📈 TIME SERIES":
                 all_ts = np.array(all_ts)
                 mean_ts = np.nanmean(all_ts, axis=0)
 
+                # فیت خطی
                 valid_mask = ~np.isnan(mean_ts)
                 if valid_mask.sum() > 5:
                     slope, intercept, r_value, p_value, std_err = scipy_stats.linregress(
@@ -1931,23 +2001,27 @@ elif page == "📈 TIME SERIES":
                     rate_per_year = slope * 365
                     r_squared = r_value ** 2
 
+                    # ⭐ فقط فرونشست: اگه مثبت بود → صفر
                     if rate_per_year > 0:
                         rate_per_year = 0.0
 
-                    future_5yr = rate_per_year * 5
+                    # پیش‌بینی ۵ ساله از dashboard_predictions (اگه موجود)
+                    future_5yr = rate_per_year * 5  # پیش‌فرض: خطی
                     try:
                         if pred_data and district in pred_data:
                             _obs = pred_data[district].get('observed_values', [])
                             _fut = pred_data[district].get('future_values', [])
                             if _obs and _fut:
                                 _delta = float(_fut[-1]) - float(_obs[0])
-                                future_5yr = min(0.0, _delta)
+                                future_5yr = min(0.0, _delta)  # فقط منفی
                     except Exception:
                         pass
                     
+                    # ⭐ اگه future_5yr مثبت بود → صفر
                     if future_5yr > 0:
                         future_5yr = 0.0
 
+                    # نوسان فصلی
                     residuals = mean_ts[valid_mask] - (slope * days[valid_mask] + intercept)
                     seasonal_amp = np.std(residuals)
 
@@ -1976,6 +2050,7 @@ elif page == "📈 TIME SERIES":
                     hide_index=True
                 )
 
+            # ⭐ نمودار روند میله‌ای
             st.markdown("---")
             st.markdown("### 📊 Trend Rate Comparison")
 
@@ -2024,6 +2099,7 @@ elif page == "📈 TIME SERIES":
 
                 st.plotly_chart(fig2, use_container_width=True)
 
+                # دانلود CSV
                 csv = ts_df.to_csv(index=False)
                 st.download_button(
                     label="📥 Download Time Series Stats (CSV)",
@@ -2034,8 +2110,8 @@ elif page == "📈 TIME SERIES":
 
         else:
             st.info("💡 Select districts from the dropdown above")
-
 elif page == "🔮 FORECAST 2029":
+    # ⭐ بنر منبع فعال (همه صفحات)
     _s = f"📡 {source_label}"
     if vel_active is not None:
         _n = int((~np.isnan(vel_active)).sum())
@@ -2064,6 +2140,7 @@ elif page == "🔮 FORECAST 2029":
     </div>
     """, unsafe_allow_html=True)
 
+    # ⭐ هدر
     st.markdown("""
     <div style="background: linear-gradient(135deg, #1a0a27 0%, #4e1a4e 50%, #1a0a27 100%);
                 padding: 2rem; border-radius: 15px; text-align: center;
@@ -2083,11 +2160,13 @@ elif page == "🔮 FORECAST 2029":
     """, unsafe_allow_html=True)
 
     if df_pred is not None:
+        # ⭐ ۵ کارت KPI
         worst = df_pred.iloc[0]
         n_very_high = (df_pred["Future_Risk"] == "🔴 Very High").sum()
         n_high = (df_pred["Future_Risk"] == "🟠 High").sum()
         mean_pred = df_pred["Predicted_2029_mm"].mean()
 
+        # جمعیت در خطر ۲۰۲۹
         if df_pop is not None:
             pop_2029 = df_pop["affected_population"].sum()
         else:
@@ -2144,12 +2223,14 @@ elif page == "🔮 FORECAST 2029":
 
         st.markdown("---")
 
+        # ⭐ بخش ۱: سری زمانی با پیش‌بینی
         st.markdown("### 📈 Historical + Forecast Time Series")
 
         try:
-            with open("dashboard_predictions.json") as f:
+            with open("/content/dashboard_predictions.json") as f:
                 pred_data = json.load(f)
             
+            # ⭐ فقط فرونشست: مقادیر مثبت رو صفر کن
             for _dk, _dv in pred_data.items():
                 if isinstance(_dv, dict):
                     for _field in ['observed_values', 'future_values', 'ci_upper', 'ci_lower']:
@@ -2159,6 +2240,7 @@ elif page == "🔮 FORECAST 2029":
             pred_data = {}
 
         if pred_data:
+            # انتخاب مناطق برای نمایش
             top_districts = df_pred.head(5)["District"].tolist()
 
             selected_pred = st.multiselect(
@@ -2178,6 +2260,7 @@ elif page == "🔮 FORECAST 2029":
                     d = pred_data[district]
                     color = colors[i % len(colors)]
 
+                    # مشاهدات
                     fig.add_trace(go.Scatter(
                         x=d["observed_dates"],
                         y=d["observed_values"],
@@ -2187,6 +2270,7 @@ elif page == "🔮 FORECAST 2029":
                         marker=dict(size=6)
                     ))
 
+                    # پیش‌بینی
                     fig.add_trace(go.Scatter(
                         x=d["future_dates"],
                         y=d["future_values"],
@@ -2195,6 +2279,7 @@ elif page == "🔮 FORECAST 2029":
                         line=dict(color=color, width=3, dash="dash")
                     ))
 
+                    # باند اطمینان
                     fig.add_trace(go.Scatter(
                         x=d["future_dates"] + d["future_dates"][::-1],
                         y=d["ci_upper"] + d["ci_lower"][::-1],
@@ -2205,6 +2290,7 @@ elif page == "🔮 FORECAST 2029":
                         hoverinfo="skip"
                     ))
 
+                # خط جداکننده
                 try:
                     fig.add_vline(
                         x=d.get("observed_dates", d.get("dates", [0]))[-1] if (d.get("observed_dates") or d.get("dates")) else 0,
@@ -2221,12 +2307,9 @@ elif page == "🔮 FORECAST 2029":
                     paper_bgcolor="#0a0e27",
                     plot_bgcolor="#0a0e27",
                     font=dict(color="#7ee7ff", family="Courier New"),
-                    xaxis=dict(
-                        title=dict(text="Date", font=dict(color="#7ee7ff")),
-                        gridcolor="rgba(255, 0, 255, 0.15)"
-                    ),
+                    xaxis=dict(title="Date", gridcolor="rgba(255, 0, 255, 0.15)"),
                     yaxis=dict(
-                        title=dict(text="Cumulative Displacement (mm)", font=dict(color="#7ee7ff")),
+                        title="Cumulative Displacement (mm)",
                         gridcolor="rgba(255, 0, 255, 0.15)",
                         zerolinecolor="#ff00ff",
                         zerolinewidth=2
@@ -2243,12 +2326,14 @@ elif page == "🔮 FORECAST 2029":
 
         st.markdown("---")
 
+        # ⭐ بخش ۲: نقشه ۲۰۲۹
         col_map, col_table = st.columns([2, 1])
 
         with col_map:
             st.markdown("### 🗺️ 2029 Risk Map")
 
             if districts_gdf is not None:
+                # ادغام با پیش‌بینی
                 pred_map = df_pred[["District", "Predicted_2029_mm", "Future_Risk"]].copy()
                 pred_map.columns = ["district_name", "predicted_2029", "future_risk"]
 
@@ -2269,7 +2354,7 @@ elif page == "🔮 FORECAST 2029":
                         [0.8, "#FFA500"],
                         [1.0, "#00FF88"]
                     ],
-                    range_color=(-400, 0),
+                    range_color=(-400, 100),
                     mapbox_style="carto-darkmatter",
                     mapbox_token=MAPBOX_TOKEN if MAPBOX_TOKEN else None,
                     zoom=10,
@@ -2312,6 +2397,7 @@ elif page == "🔮 FORECAST 2029":
 
         st.markdown("---")
 
+        # ⭐ بخش ۳: مقایسه ۲۰۲۴ vs ۲۰۲۹
         st.markdown("### 📊 2024 vs 2029 Comparison")
 
         comparison = df_pred[["District", "Current_Rate_mm_yr", "Predicted_2029_mm"]].copy()
@@ -2357,12 +2443,14 @@ elif page == "🔮 FORECAST 2029":
 
         st.plotly_chart(fig_cmp, use_container_width=True)
 
+        # ⭐ هشدار متنی
         st.markdown("---")
 
+        # ⭐ Fix: worst رow از df_pred
         _worst_row = df_pred.loc[df_pred["Predicted_2029_mm"].idxmin()]
         worst_name = _worst_row["District"]
         worst_val = float(_worst_row["Predicted_2029_mm"])
-        building_floors = abs(worst_val) / 3
+        building_floors = abs(worst_val) / 3  # هر طبقه 3 متر
 
         st.markdown(f"""
         <div style="background: linear-gradient(90deg, rgba(255, 0, 255, 0.1), rgba(255, 0, 0, 0.1));
@@ -2378,6 +2466,7 @@ elif page == "🔮 FORECAST 2029":
         </div>
         """, unsafe_allow_html=True)
 
+        # ⭐ دانلود
         csv = df_pred.to_csv(index=False)
         st.download_button(
             label="📥 Download Forecast Data (CSV)",
@@ -2385,8 +2474,8 @@ elif page == "🔮 FORECAST 2029":
             file_name="tehran_forecast_2029.csv",
             mime="text/csv"
         )
-
 elif page == "🎬 ANIMATION":
+    # ⭐ بنر منبع فعال (همه صفحات)
     _s = f"📡 {source_label}"
     if vel_active is not None:
         _n = int((~np.isnan(vel_active)).sum())
@@ -2415,6 +2504,7 @@ elif page == "🎬 ANIMATION":
     </div>
     """, unsafe_allow_html=True)
 
+    # ⭐ هدر سای‌فای
     st.markdown("""
     <div style="background: linear-gradient(135deg, #1a0a2e 0%, #4a1a4a 50%, #1a0a2e 100%);
                 padding: 2rem; border-radius: 15px; text-align: center;
@@ -2434,6 +2524,7 @@ elif page == "🎬 ANIMATION":
     """, unsafe_allow_html=True)
 
     if timeseries is not None and joined_df is not None:
+        # ⭐ آماده‌سازی داده‌ها
         if "anim_frame" not in st.session_state:
             st.session_state.anim_frame = 0
         if "anim_playing" not in st.session_state:
@@ -2441,6 +2532,7 @@ elif page == "🎬 ANIMATION":
         if "anim_zoom" not in st.session_state:
             st.session_state.anim_zoom = "All Tehran"
 
+        # ⭐ بخش ۱: کنترل‌ها
         st.markdown("### 🎬 Time Machine Controls")
 
         ctrl1, ctrl2, ctrl3, ctrl4, ctrl5 = st.columns([1, 1, 1, 1, 2])
@@ -2462,6 +2554,7 @@ elif page == "🎬 ANIMATION":
         with ctrl5:
             speed = st.slider("⚡ Speed (seconds/frame)", 0.1, 2.0, 0.5, 0.1)
 
+        # ⭐ انتخاب Zoom
         st.markdown("#### 🎯 Zoom")
         all_districts_anim = ["All Tehran"] + sorted(joined_df["district_name"].unique().tolist())
         st.session_state.anim_zoom = st.selectbox(
@@ -2471,6 +2564,7 @@ elif page == "🎬 ANIMATION":
             label_visibility="collapsed"
         )
 
+        # ⭐ اسلایدر تایم‌لاین
         st.markdown("#### ⏱ Timeline")
         frame_idx = st.slider(
             "Date Selection",
@@ -2482,8 +2576,10 @@ elif page == "🎬 ANIMATION":
         )
         st.session_state.anim_frame = frame_idx
 
+        # ⭐ بخش ۲: آمار زنده
         st.markdown("---")
 
+        # محاسبه جابجایی تجمعی (فقط منفی)
         cumulative = timeseries[frame_idx] - timeseries[0]
         cumulative = np.minimum(cumulative, 0.0)
 
@@ -2492,10 +2588,14 @@ elif page == "🎬 ANIMATION":
         min_disp = np.nanmin(cumulative)
         max_disp = np.nanmax(cumulative)
 
+        # نقاط بحرانی
         critical_count = int(np.sum(cumulative < -100))
+
+        # مساحت تخریب‌شده
         valid_pixels = np.sum(~np.isnan(cumulative))
         critical_pct = critical_count / valid_pixels * 100 if valid_pixels > 0 else 0
 
+        # ⭐ کارت‌های آمار زنده
         st.markdown("### 📊 Live Statistics")
 
         stat1, stat2, stat3, stat4, stat5 = st.columns(5)
@@ -2585,12 +2685,15 @@ elif page == "🎬 ANIMATION":
             </div>
             """, unsafe_allow_html=True)
 
+        # ⭐ بخش ۳: نقشه انیمیشن
         st.markdown("---")
         st.markdown("### 🗺️ Tehran Subsidence Animation")
 
+        # نمونه‌برداری
         sample_size = min(5000, len(joined_df))
         sample_df = joined_df.sample(n=sample_size, random_state=42).copy()
 
+        # استخراج جابجایی تجمعی برای نمونه
         sample_cumulative = []
         for _, p in sample_df.iterrows():
             try:
@@ -2605,8 +2708,10 @@ elif page == "🎬 ANIMATION":
 
         sample_df["cumulative"] = sample_cumulative
 
+        # ⭐ ساخت نقشه
         fig = go.Figure()
 
+        # نقاط با رنگ حرارتی
         fig.add_trace(go.Scattermapbox(
             lon=sample_df["lon"],
             lat=sample_df["lat"],
@@ -2636,6 +2741,7 @@ elif page == "🎬 ANIMATION":
             showlegend=False
         ))
 
+        # مرزها
         if districts_gdf is not None:
             for _, r in districts_gdf.iterrows():
                 g = r.geometry
@@ -2651,6 +2757,7 @@ elif page == "🎬 ANIMATION":
                         hoverinfo="skip"
                     ))
 
+        # مترو
         if metro_gdf is not None:
             for _, r in metro_gdf.iterrows():
                 g = r.geometry
@@ -2666,6 +2773,7 @@ elif page == "🎬 ANIMATION":
                         hoverinfo="skip"
                     ))
 
+        # فرودگاه‌ها
         if airports_gdf is not None:
             for _, r in airports_gdf.iterrows():
                 g = r.geometry
@@ -2685,6 +2793,7 @@ elif page == "🎬 ANIMATION":
                     hovertemplate="<b>✈️ Airport</b><extra></extra>"
                 ))
 
+        # ⭐ View State با zoom
         view_state = {
             "style": "carto-darkmatter",
             "accesstoken": MAPBOX_TOKEN if MAPBOX_TOKEN else None,
@@ -2717,9 +2826,11 @@ elif page == "🎬 ANIMATION":
 
         st.plotly_chart(fig, use_container_width=True)
 
+        # ⭐ بخش ۴: نمودار پیشرفت
         st.markdown("---")
         st.markdown("### 📈 Progress Timeline")
 
+        # محاسبه میانگین تجمعی برای همه فریم‌ها
         progress_values = []
         for i in range(len(dates)):
             cum = timeseries[i] - timeseries[0]
@@ -2728,6 +2839,7 @@ elif page == "🎬 ANIMATION":
 
         fig_prog = go.Figure()
 
+        # خط کامل
         fig_prog.add_trace(go.Scatter(
             x=dates_fmt,
             y=progress_values,
@@ -2737,6 +2849,7 @@ elif page == "🎬 ANIMATION":
             showlegend=False
         ))
 
+        # نقطه فعلی
         fig_prog.add_trace(go.Scatter(
             x=[dates_fmt[frame_idx]],
             y=[progress_values[frame_idx]],
@@ -2766,24 +2879,31 @@ elif page == "🎬 ANIMATION":
 
         st.plotly_chart(fig_prog, use_container_width=True)
 
+        # ⭐ بخش ۵: Event Log
         st.markdown("---")
         st.markdown("### 🔴 Event Log")
 
+        # رویدادهای کلیدی
         events = []
+
+        # اولین تاریخ
         events.append(("📍", dates_fmt[0], "First SAR acquisition"))
 
+        # وقتی District 19 از -50 رد شد
         for i, d in enumerate(dates_fmt):
             cum = timeseries[i] - timeseries[0]
             if np.nanmin(cum) < -100:
                 events.append(("🚨", d, f"Cumulative subsidence reaches -100 mm (Max: {np.nanmin(cum):.0f} mm)"))
                 break
 
+        # وقتی میانگین از -50 رد شد
         for i, d in enumerate(dates_fmt):
             cum = timeseries[i] - timeseries[0]
             if np.nanmean(cum) < -30:
                 events.append(("⚠️", d, f"Mean displacement exceeds -30 mm"))
                 break
 
+        # آخرین تاریخ
         events.append(("🏁", dates_fmt[-1], "End of analysis period"))
 
         for icon, date, desc in events:
@@ -2799,6 +2919,7 @@ elif page == "🎬 ANIMATION":
             </div>
             """, unsafe_allow_html=True)
 
+        # ⭐ بخش ۶: Play loop
         if st.session_state.anim_playing:
             if frame_idx < len(dates) - 1:
                 time.sleep(speed)
@@ -2806,8 +2927,8 @@ elif page == "🎬 ANIMATION":
                 st.rerun()
             else:
                 st.session_state.anim_playing = False
-
 elif page == "🚨 RISK MAP":
+    # ⭐ بنر منبع فعال (همه صفحات)
     _s = f"📡 {source_label}"
     if vel_active is not None:
         _n = int((~np.isnan(vel_active)).sum())
@@ -2836,6 +2957,7 @@ elif page == "🚨 RISK MAP":
     </div>
     """, unsafe_allow_html=True)
 
+    # ⭐ هدر قرمز سای‌فای
     st.markdown("""
     <div style="background: linear-gradient(135deg, #2e0a0a 0%, #4a1a1a 50%, #2e0a0a 100%);
                 padding: 2rem; border-radius: 15px; text-align: center;
@@ -2855,6 +2977,7 @@ elif page == "🚨 RISK MAP":
     """, unsafe_allow_html=True)
 
     if joined_df is not None:
+        # ⭐ طبقه‌بندی ۵ سطحی
         def classify_risk_level(v):
             if v > -5:
                 return 0, "⚪ No Risk", "#95a5a6"
@@ -2867,11 +2990,13 @@ elif page == "🚨 RISK MAP":
             else:
                 return 4, "🔴 Very High", "#FF1432"
 
+        # ⭐ copy برای جلوگیری از mutate شدن joined_df اصلی
         _joined = joined_df.copy()
         _joined["risk_level"] = _joined["velocity"].apply(lambda v: classify_risk_level(v)[0])
         _joined["risk_label"] = _joined["velocity"].apply(lambda v: classify_risk_level(v)[1])
         _joined["risk_color"] = _joined["velocity"].apply(lambda v: classify_risk_level(v)[2])
 
+        # ⭐ راهنمای سطح خطر
         st.markdown("### 🎨 Risk Classification Legend")
 
         legend_cols = st.columns(5)
@@ -2911,27 +3036,33 @@ elif page == "🚨 RISK MAP":
 
         st.markdown("---")
 
+        # ⭐ فیلتر سطح خطر
         st.markdown("### 🎯 Filter by Risk Level")
 
         risk_filter = st.multiselect(
             "Select risk levels to display:",
             options=["⚪ No Risk", "🟢 Low", "🟡 Moderate", "🟠 High", "🔴 Very High"],
             default=["🟢 Low", "🟡 Moderate", "🟠 High", "🔴 Very High"]
+            # ⭐ No Risk پیش‌فرض خاموش (چون تعدادش زیاده)
         )
 
+        # فیلتر داده‌ها
         filtered_df = _joined[_joined["risk_label"].isin(risk_filter)].copy()
 
+        # ⭐ دو ستون: نقشه + شمارنده
         col_map, col_count = st.columns([2, 1])
 
         with col_map:
             st.markdown("### 🗺️ Risk Map")
 
+            # نمونه‌برداری
             sample_size = min(10000, len(filtered_df))
             if sample_size > 0:
                 sample_df = filtered_df.sample(n=sample_size, random_state=42)
 
                 fig = go.Figure()
 
+                # لایه به لایه بر اساس سطح خطر
                 risk_order = [
                     ("⚪ No Risk", "#95a5a6", 0),
                     ("🟢 Low", "#00FF88", 1),
@@ -2959,6 +3090,7 @@ elif page == "🚨 RISK MAP":
                         customdata=level_df["velocity"]
                     ))
 
+                # مرزها
                 if districts_gdf is not None:
                     for _, r in districts_gdf.iterrows():
                         g = r.geometry
@@ -2975,6 +3107,7 @@ elif page == "🚨 RISK MAP":
                                 hoverinfo="skip"
                             ))
 
+                # مترو
                 if metro_gdf is not None:
                     for _, r in metro_gdf.iterrows():
                         g = r.geometry
@@ -3040,6 +3173,7 @@ elif page == "🚨 RISK MAP":
                 </div>
                 """, unsafe_allow_html=True)
 
+            # جمع کل خطر
             at_risk = int((_joined["risk_level"] >= 1).sum())
             at_risk_pct = at_risk / total * 100 if total > 0 else 0
 
@@ -3064,35 +3198,43 @@ elif page == "🚨 RISK MAP":
             </div>
             """, unsafe_allow_html=True)
 
+        # ⭐ جدول رتبه‌بندی مناطق
         st.markdown("---")
         st.markdown("### 📋 District Risk Ranking")
 
         if df_pop is not None:
+            # ادغام با آمار مناطق
             district_stats = joined_df.groupby("district_name").agg(
                 mean_velocity=("velocity", "mean"),
                 total_pixels=("velocity", "count")
             ).reset_index()
 
+            # شمارش نقاط هر سطح خطر در هر منطقه
             for label, color, order in risk_order:
                 counts = _joined[_joined["risk_label"] == label].groupby("district_name").size().reset_index(name=f"count_{order}")
                 district_stats = district_stats.merge(counts, on="district_name", how="left")
 
+            # پر کردن NaN
             for order in range(5):
                 col_name = f"count_{order}"
                 if col_name not in district_stats.columns:
                     district_stats[col_name] = 0
                 district_stats[col_name] = district_stats[col_name].fillna(0).astype(int)
 
+            # ادغام با df_pop برای risk_index
             district_stats = district_stats.merge(
                 df_pop[["district_name", "population", "affected_population", "risk_index", "risk_category"]],
                 on="district_name",
                 how="left"
             )
 
+            # ⭐ fillna برای risk_index
             district_stats["risk_index"] = district_stats["risk_index"].fillna(0)
 
+            # مرتب‌سازی
             district_stats = district_stats.sort_values("risk_index", ascending=False)
 
+            # نمایش جدول
             display_df = district_stats[["district_name", "count_4", "count_3", "count_2", "count_1", "count_0", "risk_index", "risk_category"]].copy()
             display_df.columns = ["District", "🔴 V.High", "🟠 High", "🟡 Mod", "🟢 Low", "⚪ None", "Risk Score", "Category"]
 
@@ -3116,6 +3258,7 @@ elif page == "🚨 RISK MAP":
                 height=500
             )
 
+        # ⭐ هشدار متنی
         st.markdown("---")
 
         very_high_count = int((_joined["risk_level"] == 4).sum())
@@ -3137,6 +3280,7 @@ elif page == "🚨 RISK MAP":
         </div>
         """, unsafe_allow_html=True)
 
+        # ⭐ دانلود
         if df_pop is not None:
             csv = district_stats.to_csv(index=False)
             st.download_button(
@@ -3145,8 +3289,8 @@ elif page == "🚨 RISK MAP":
                 file_name="tehran_risk_ranking.csv",
                 mime="text/csv"
             )
-
 elif page == "🚇 INFRASTRUCTURE":
+    # ⭐ بنر منبع فعال (همه صفحات)
     _s = f"📡 {source_label}"
     if vel_active is not None:
         _n = int((~np.isnan(vel_active)).sum())
@@ -3175,6 +3319,7 @@ elif page == "🚇 INFRASTRUCTURE":
     </div>
     """, unsafe_allow_html=True)
 
+    # ⭐ هدر آبی سای‌فای
     st.markdown("""
     <div style="background: linear-gradient(135deg, #0a1e2e 0%, #1a3a4e 50%, #0a1e2e 100%);
                 padding: 2rem; border-radius: 15px; text-align: center;
@@ -3193,6 +3338,7 @@ elif page == "🚇 INFRASTRUCTURE":
     </div>
     """, unsafe_allow_html=True)
 
+    # ⭐ محاسبه آمار کلی (NaN-safe)
     metro_critical = 0
     metro_warning = 0
     airports_at_risk = 0
@@ -3210,6 +3356,7 @@ elif page == "🚇 INFRASTRUCTURE":
         _pop_aff = df_pop["affected_population"].fillna(0)
         pop_at_risk = int(_pop_aff.sum())
 
+    # ⭐ ۳ کارت KPI بالا
     st.markdown("### 📊 Critical Infrastructure Overview")
 
     kpi1, kpi2, kpi3 = st.columns(3)
@@ -3243,10 +3390,15 @@ elif page == "🚇 INFRASTRUCTURE":
 
     st.markdown("---")
 
+    # ⭐ ۳ تب
     tab1, tab2, tab3 = st.tabs(["🚇 Metro", "✈️ Airports", "👥 Population"])
 
+    # ============================================================
+    # TAB 1: METRO
+    # ============================================================
     with tab1:
         if df_metro is not None:
+            # آمار
             m_crit = int((df_metro["risk"] == "🔴 Critical").sum())
             m_warn = int((df_metro["risk"] == "🟠 Warning").sum())
             m_mod = int((df_metro["risk"] == "🟡 Moderate").sum())
@@ -3289,6 +3441,7 @@ elif page == "🚇 INFRASTRUCTURE":
 
             st.markdown("---")
 
+            # نقشه مترو
             col_map, col_list = st.columns([2, 1])
 
             with col_map:
@@ -3296,6 +3449,7 @@ elif page == "🚇 INFRASTRUCTURE":
 
                 fig = go.Figure()
 
+                # خطوط مترو
                 if metro_gdf is not None:
                     for _, r in metro_gdf.iterrows():
                         g = r.geometry
@@ -3312,6 +3466,7 @@ elif page == "🚇 INFRASTRUCTURE":
                                 hoverinfo="skip"
                             ))
 
+                # ایستگاه‌ها بر اساس خطر
                 risk_colors = {
                     "🔴 Critical": "#FF1432",
                     "🟠 Warning": "#FF7800",
@@ -3339,6 +3494,7 @@ elif page == "🚇 INFRASTRUCTURE":
                         customdata=subset["velocity_mm_yr"]
                     ))
 
+                # مرزها
                 if districts_gdf is not None:
                     for _, r in districts_gdf.iterrows():
                         g = r.geometry
@@ -3390,6 +3546,7 @@ elif page == "🚇 INFRASTRUCTURE":
                     height=600
                 )
 
+            # نمودار میله‌ای
             st.markdown("---")
             st.markdown("### 📊 Stations by Risk Level")
 
@@ -3420,12 +3577,17 @@ elif page == "🚇 INFRASTRUCTURE":
 
             st.plotly_chart(fig2, use_container_width=True)
 
+    # ============================================================
+    # TAB 2: AIRPORTS
+    # ============================================================
     with tab2:
         if df_airports is not None:
+            # نقشه فرودگاه‌ها
             st.markdown("### 🗺️ Airport Risk Map")
 
             fig_air = go.Figure()
 
+            # فرودگاه‌ها
             for _, r in df_airports.iterrows():
                 v = r["mean_velocity"]
                 if v < -30:
@@ -3454,6 +3616,7 @@ elif page == "🚇 INFRASTRUCTURE":
                     showlegend=False
                 ))
 
+            # مرزها
             if districts_gdf is not None:
                 for _, r in districts_gdf.iterrows():
                     g = r.geometry
@@ -3484,6 +3647,7 @@ elif page == "🚇 INFRASTRUCTURE":
 
             st.plotly_chart(fig_air, use_container_width=True)
 
+            # جدول فرودگاه‌ها
             st.markdown("---")
             st.markdown("### 📋 Airport Analysis")
 
@@ -3499,10 +3663,11 @@ elif page == "🚇 INFRASTRUCTURE":
                 hide_index=True
             )
 
+            # کارت‌های فرودگاه
             st.markdown("---")
             st.markdown("### ✈️ Airport Cards")
 
-            n_air = min(len(df_airports), 5)
+            n_air = min(len(df_airports), 5)   # حداکثر ۵ کارت
             cols_air = st.columns(n_air)
 
             for col, (_, r) in zip(cols_air, df_airports.iterrows()):
@@ -3523,8 +3688,12 @@ elif page == "🚇 INFRASTRUCTURE":
                     </div>
                     """, unsafe_allow_html=True)
 
+    # ============================================================
+    # TAB 3: POPULATION
+    # ============================================================
     with tab3:
         if df_pop is not None:
+            # آمار کلی (NaN-safe)
             total_pop = df_pop["population"].fillna(0).sum()
             total_affected = df_pop["affected_population"].fillna(0).sum()
             affected_pct = (total_affected / total_pop * 100) if total_pop > 0 else 0
@@ -3560,6 +3729,7 @@ elif page == "🚇 INFRASTRUCTURE":
 
             st.markdown("---")
 
+            # نقشه حرارتی جمعیت
             col_map, col_scatter = st.columns([1, 1])
 
             with col_map:
@@ -3659,6 +3829,7 @@ elif page == "🚇 INFRASTRUCTURE":
 
                 st.plotly_chart(fig_scatter, use_container_width=True)
 
+            # Top 10 جدول
             st.markdown("---")
             st.markdown("### 👥 Top 10 Districts by Affected Population")
 
@@ -3680,6 +3851,7 @@ elif page == "🚇 INFRASTRUCTURE":
                 hide_index=True
             )
 
+    # ⭐ هشدار پایین صفحه
     st.markdown("---")
 
     st.markdown(f"""
@@ -3696,8 +3868,8 @@ elif page == "🚇 INFRASTRUCTURE":
         </p>
     </div>
     """, unsafe_allow_html=True)
-
 elif page == "🔥 HOTSPOTS":
+    # ⭐ بنر منبع فعال (همه صفحات)
     _s = f"📡 {source_label}"
     if vel_active is not None:
         _n = int((~np.isnan(vel_active)).sum())
@@ -3726,6 +3898,7 @@ elif page == "🔥 HOTSPOTS":
     </div>
     """, unsafe_allow_html=True)
 
+    # ⭐ هدر نارنجی سای‌فای
     st.markdown("""
     <div style="background: linear-gradient(135deg, #2e1a0a 0%, #4e2a1a 50%, #2e1a0a 100%);
                 padding: 2rem; border-radius: 15px; text-align: center;
@@ -3745,9 +3918,11 @@ elif page == "🔥 HOTSPOTS":
     """, unsafe_allow_html=True)
 
     if df_hot is not None and len(df_hot) > 0:
+        # ⭐ مرتب‌سازی خوشه‌ها بر اساس تعداد نقاط
         df_hot_sorted = df_hot.sort_values("n_points", ascending=False).reset_index(drop=True)
         df_hot_sorted["rank"] = df_hot_sorted.index + 1
 
+        # ⭐ اضافه کردن منطقه به هر خوشه
         if districts_gdf is not None:
             import geopandas as _gpd
             from shapely.geometry import Point
@@ -3774,6 +3949,9 @@ elif page == "🔥 HOTSPOTS":
         else:
             df_hot_sorted["district"] = "Unknown"
 
+        # ⭐ چگالی حذف شد (محاسبه اشتباه بود)
+
+        # ⭐ ۵ کارت KPI
         n_clusters = len(df_hot_sorted)
         total_critical = int(df_hot_sorted["n_points"].sum())
         mean_velocity = df_hot_sorted["mean_velocity"].mean()
@@ -3831,10 +4009,12 @@ elif page == "🔥 HOTSPOTS":
 
         st.markdown("---")
 
+        # ⭐ نقشه اصلی
         st.markdown("### 🗺️ Hotspot Map with Cluster Analysis")
 
         fig = go.Figure()
 
+        # ⭐ لایه ۱: نقاط بحرانی
         if joined_df is not None:
             critical_pts = joined_df[joined_df["velocity"] < -30].copy()
             sample_size = min(5000, len(critical_pts))
@@ -3869,11 +4049,14 @@ elif page == "🔥 HOTSPOTS":
                     showlegend=False
                 ))
 
+        # ⭐ لایه ۲: محیط محدب (Convex Hull) هر خوشه
+        # اینجا از دایره‌ها به جای hull استفاده می‌کنیم (ساده‌تر)
         cluster_colors = ["#FF1432", "#FF7800", "#FFE600", "#00FF88", "#00d9ff"]
 
         for i, (_, cluster) in enumerate(df_hot_sorted.iterrows()):
             color = cluster_colors[i % len(cluster_colors)]
 
+            # اندازه دایره بر اساس تعداد نقاط
             circle_size = max(20, min(80, cluster["n_points"] ** 0.5 / 1.5))
 
             fig.add_trace(go.Scattermapbox(
@@ -3897,6 +4080,7 @@ elif page == "🔥 HOTSPOTS":
                 showlegend=True
             ))
 
+        # ⭐ لایه ۳: مرزها
         if districts_gdf is not None:
             for _, r in districts_gdf.iterrows():
                 g = r.geometry
@@ -3912,6 +4096,7 @@ elif page == "🔥 HOTSPOTS":
                         hoverinfo="skip"
                     ))
 
+        # ⭐ لایه ۴: مترو
         if metro_gdf is not None:
             for _, r in metro_gdf.iterrows():
                 g = r.geometry
@@ -3951,6 +4136,7 @@ elif page == "🔥 HOTSPOTS":
 
         st.markdown("---")
 
+        # ⭐ بخش پایین: رتبه‌بندی + تحلیل خوشه
         col_rank, col_detail = st.columns([1, 1])
 
         with col_rank:
@@ -3976,6 +4162,7 @@ elif page == "🔥 HOTSPOTS":
         with col_detail:
             st.markdown("### 🎯 Detailed Analysis")
 
+            # انتخاب خوشه
             cluster_options = [f"C{int(c) + 1} · {d} · {int(n):,} points" 
                               for c, d, n in zip(
                                   df_hot_sorted["cluster_id"],
@@ -3991,6 +4178,7 @@ elif page == "🔥 HOTSPOTS":
             selected_idx = cluster_options.index(selected_cluster_name)
             selected_cluster = df_hot_sorted.iloc[selected_idx]
 
+            # اطلاعات خوشه
             st.markdown(f"""
             <div style="background: linear-gradient(135deg, #2e1a0a 0%, #4e2a1a 100%);
                         border: 2px solid #FF7800; border-radius: 10px;
@@ -4028,6 +4216,7 @@ elif page == "🔥 HOTSPOTS":
             </div>
             """, unsafe_allow_html=True)
 
+            # آمار اضافی (safe)
             _max_v = abs(df_hot_sorted["mean_velocity"].max())
             if _max_v > 0:
                 critical_pct = abs(selected_cluster["mean_velocity"]) / _max_v * 100
@@ -4047,6 +4236,7 @@ elif page == "🔥 HOTSPOTS":
             </div>
             """, unsafe_allow_html=True)
 
+        # ⭐ نمودار میله‌ای خوشه‌ها
         st.markdown("---")
         st.markdown("### 📊 Cluster Comparison")
 
@@ -4082,6 +4272,7 @@ elif page == "🔥 HOTSPOTS":
 
         st.plotly_chart(fig2, use_container_width=True)
 
+        # ⭐ جدول کامل
         st.markdown("---")
         st.markdown("### 📋 Full Cluster Statistics")
 
@@ -4112,6 +4303,7 @@ elif page == "🔥 HOTSPOTS":
             hide_index=True
         )
 
+        # ⭐ دانلود CSV
         csv = df_hot_sorted.to_csv(index=False)
         st.download_button(
             label="📥 Download Cluster Data (CSV)",
@@ -4122,8 +4314,8 @@ elif page == "🔥 HOTSPOTS":
 
     else:
         st.warning("⚠️ No hotspot data available")
-
 elif page == "📚 METHODOLOGY":
+    # ⭐ بنر منبع فعال (همه صفحات)
     _s = f"📡 {source_label}"
     if vel_active is not None:
         _n = int((~np.isnan(vel_active)).sum())
@@ -4152,6 +4344,7 @@ elif page == "📚 METHODOLOGY":
     </div>
     """, unsafe_allow_html=True)
 
+    # ⭐ هدر سبز سای‌فای (تم علمی)
     st.markdown("""
     <div style="background: linear-gradient(135deg, #0a2e1a 0%, #1a4e2a 50%, #0a2e1a 100%);
                 padding: 2rem; border-radius: 15px; text-align: center;
@@ -4170,6 +4363,7 @@ elif page == "📚 METHODOLOGY":
     </div>
     """, unsafe_allow_html=True)
 
+    # ⭐ بخش ۱: چرا این پروژه مهمه؟
     st.markdown("""
     <div style="background: linear-gradient(90deg, rgba(0, 255, 136, 0.1), rgba(0, 217, 255, 0.1));
                 border-left: 5px solid #00FF88; border-radius: 10px;
@@ -4191,6 +4385,7 @@ elif page == "📚 METHODOLOGY":
     </div>
     """, unsafe_allow_html=True)
 
+    # ⭐ بخش ۲: ۴ کارت تکنولوژی
     st.markdown("### 🛠️ Key Technologies")
 
     tech_cols = st.columns(4)
@@ -4224,6 +4419,7 @@ elif page == "📚 METHODOLOGY":
 
     st.markdown("---")
 
+    # ⭐ بخش ۳: فلوچارت پردازش
     st.markdown("### 📊 Processing Pipeline")
 
     st.markdown("""
@@ -4301,6 +4497,7 @@ elif page == "📚 METHODOLOGY":
 
     st.markdown("---")
 
+    # ⭐ بخش ۴: ۴ تب موضوعی
     st.markdown("### 📖 Detailed Documentation")
 
     tab_data, tab_processing, tab_limits, tab_future = st.tabs([
@@ -4415,10 +4612,12 @@ elif page == "📚 METHODOLOGY":
 
     st.markdown("---")
 
+    # ⭐ بخش ۵: آمار فنی
     st.markdown("### 📊 Technical Statistics")
 
     tech_stats = st.columns(5)
 
+    # ⭐ مقادیر dynamic
     _n_dates = len(dates) if dates else 29
     _n_pairs = _n_dates - 1
     _n_valid = int((~np.isnan(vel_active)).sum()) if vel_active is not None else 0
@@ -4453,6 +4652,7 @@ elif page == "📚 METHODOLOGY":
 
     st.markdown("---")
 
+    # ⭐ بخش ۶: مراجع علمی
     st.markdown("### 📚 Scientific References")
 
     references = [
@@ -4481,6 +4681,7 @@ elif page == "📚 METHODOLOGY":
 
     st.markdown("---")
 
+    # ⭐ بخش ۷: دانلود گزارش
     st.markdown("### 📥 Download Report")
 
     col_download1, col_download2 = st.columns(2)
@@ -4497,6 +4698,7 @@ elif page == "📚 METHODOLOGY":
             )
 
     with col_download2:
+        # خلاصه‌ی متنی
         summary_text = "TEHRAN SUBSIDENCE ANALYSIS - METHODOLOGY\n" + "=" * 60 + "\n\n"
         summary_text += "Period: Jan-Dec 2024\n"
         summary_text += "Satellite: Sentinel-1 (ESA)\n"
