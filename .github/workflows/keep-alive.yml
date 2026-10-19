@@ -2,9 +2,8 @@ name: Keep Streamlit App Awake
 
 on:
   schedule:
-    # اجرای خودکار هر ۴ ساعت (دقیقه ۰ ساعت‌های ۰، ۴، ۸، ۱۲، ۱۶، ۲۰)
-    - cron: '0 */4 * * *' 
-  workflow_dispatch: # این خط به شما اجازه می‌دهد دستی هم اجرا کنید
+    - cron: '0 */4 * * *'  # اجرای خودکار هر ۴ ساعت
+  workflow_dispatch:        # امکان اجرای دستی
 
 jobs:
   wake-up:
@@ -18,8 +17,10 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install requests
-        run: pip install requests
+      - name: Install dependencies
+        run: |
+          pip install playwright
+          playwright install chromium  # نصب مرورگر مجازی
 
-      - name: Run ping script
+      - name: Run wake-up script
         run: python keep_alive.py
