@@ -1,40 +1,33 @@
-import requests
-import time
+import asyncio
 import sys
+from playwright.async_api import async_playwright
 
-# ⚠️ اینجا آدرس اپلیکیشن استریم‌لیت خودتان را جایگزین کنید (حتماً با https)
-URL = "https://tehran-subsidence-hud5ns2vttfmo5gjdgwnfv.streamlit.app/" 
+URL = "https://tehran-subsidence-hud5ns2vttfmo5gjdgwnfv.streamlit.app/"
 
-def check_app():
-    # هدر مرورگر برای اینکه سرور Streamlit درخواست را بلاک نکند
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-    }
-    
-    # تلاش ۳ باره برای جلوگیری از خطای الکی
-    for attempt in range(3):
+async def main():
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=True)
+        page = await browser.new_page()
         try:
-            print(f"Attempt {attempt + 1}: Pinging {URL}...")
-            response = requests.get(URL, headers=headers, timeout=60)
+            print(f"Opening {URL}...")
+            await page.goto(URL, wait_until="domcontentloaded", timeout=120000)
+            await page.wait_for_timeout(5000) 
             
-            # اگر کد 200 دریافت کردیم، یعنی اپ آنلاین است
-            if response.status_code == 200:
-                print("✅ Success: App is online and responding.")
-                return True
+            wake_btn = page.get_by_role("button", name="Yes, get this app back up!")
+            
+            if await wake_btn.count() > 0:
+                print("App is sleeping. Clicking wake up button...")
+                await wake_btn.click()
+                await page.wait_for_timeout(60000) 
+                print("✅ App wake up signal sent successfully.")
             else:
-                print(f"⚠️ App returned status code: {response.status_code}")
+                print("✅ App is already awake. No action needed.")
                 
-        except requests.exceptions.RequestException as e:
-            print(f"❌ Connection error: {e}")
-        
-        # ۱۵ ثانیه صبر و تلاش مجدد
-        time.sleep(15) 
-        
-    print("🚨 Failed to reach the app after 3 attempts.")
-    return False
+        except Exception as e:
+            print(f"❌ Error: {e}")
+            raise 
+        finally:
+            await browser.close()
 
 if __name__ == "__main__":
-    if not check_app():
-        sys.exit(1)  # اگر اپ واقعاً خراب بود، ارور می‌دهد
-    else:
-        sys.exit(0)  # اگر موفق بود، خارج می‌شود (تیک سبز)
+    asyncio.run(main())
