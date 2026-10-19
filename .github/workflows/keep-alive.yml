@@ -2,15 +2,15 @@ name: Keep Streamlit App Awake
 
 on:
   schedule:
-    - cron: '0 */6 * * *'  # هر ۶ ساعت یکبار
-  workflow_dispatch:        # امکان اجرای دستی
+    # اجرای خودکار هر ۴ ساعت (دقیقه ۰ ساعت‌های ۰، ۴، ۸، ۱۲، ۱۶، ۲۰)
+    - cron: '0 */4 * * *' 
+  workflow_dispatch: # این خط به شما اجازه می‌دهد دستی هم اجرا کنید
 
 jobs:
   wake-up:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set up Python
@@ -18,13 +18,8 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install Playwright and Chromium
-        run: |
-          python -m pip install --upgrade pip
-          pip install playwright
-          playwright install --with-deps chromium
+      - name: Install requests
+        run: pip install requests
 
-      - name: Run wake-up script
-        env:
-          APP_URL: "https://tehran-subsidence-hud5ns2vttfmo5gjdgwnfv.streamlit.app/"  # ← آدرس اپ خود را اینجا وارد کنید
-        run: python wake_app.py
+      - name: Run ping script
+        run: python keep_alive.py
